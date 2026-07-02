@@ -1,7 +1,7 @@
 gameBoard = [["." for _ in range(7)] for _ in range(6)]
 gameBoard.append(list(range(7)))
 
-rowDetermine = dict.fromkeys(range(7), 5)
+nextRowForColumnMap = dict.fromkeys(range(7), 5)
 
 print('\n'.join(['\t'.join([str(cell) for cell in row]) for row in gameBoard]))
 
@@ -13,19 +13,37 @@ diskRow = 0
 
 game=True
 
+# input: column that we want to insert, player putting disk
+# output: diskRow
 def insertChip(column, playerDisk):
-    global diskColumn
-    global diskRow
-    diskColumn = column
-    diskRow = rowDetermine[column]
-    rowDetermine[column]-=1
-    gameBoard[diskRow][diskColumn] = playerDisk
+    # find row for where the disk falls to
+    diskRow = nextRowForColumnMap[column]
+    # update nextRowForColumnMap
+    nextRowForColumnMap[column]-=1
+    # update gameBoard
+    gameBoard[diskRow][column] = playerDisk
+    # output the row that the playerDisk has fallen to
+    return diskRow
+
+def playerInput(playerNumber):
+    while True:
+        try:
+            # get player input
+            givenInput = int(input(f"Player {playerNumber}'s move: "))
+
+            if 0 <= givenInput <= 6:
+                return givenInput # Valid input exits the function immediately
+            else:
+                print(f"You dropped your disk outside of the gameboard, silly guy! Try again, choosing a number between 0 and 6.")
+                
+        except ValueError:
+            print("You seem a bit confused, try again, choosing a number between 0 and 6.")
 
 while game: #game loop
-    playerNumber = str((turn%2)+1)
+    playerNumber = (turn%2)+1
     playerDisk = disks[int(playerNumber)-1]
-    playerInput = int(input("Player " + playerNumber + "'s move: "))
-    insertChip(playerInput, playerDisk) # --> updated the game board + set row and column that the disk has fallen into
+    diskColumn = playerInput(playerNumber)
+    diskRow = insertChip(diskColumn, playerDisk) # --> updated the game board + set row and column that the disk has fallen into
     print('\n'.join(['\t'.join([str(cell) for cell in row]) for row in gameBoard]))
 
     c = 1
@@ -89,7 +107,7 @@ while game: #game loop
             break
 
     if counterRow >= 3 or counterDown >= 3 or counterSlash >= 3 or counterBackslash >= 3:
-        print("Player " + playerNumber + " Wins!")
+        print(f"Player {playerNumber} Wins!")
         break
 
     turn +=1
