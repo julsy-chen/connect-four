@@ -1,3 +1,6 @@
+MAX_COLUMN = 6
+MAX_ROW = 5
+
 class Connect4:
     def __init__(self):
         # initialize state to get a new board
@@ -21,7 +24,7 @@ class Connect4:
         # update self.board
         self.board[diskRow][column] = playerDisk
         # output the row that the playerDisk has fallen to
-        print('\n'.join(['\t'.join([str(cell) for cell in row]) for row in self.board]))
+        self.printBoard()
         return diskRow
 
     def getPlayerInput(self, playerNumber):
@@ -36,10 +39,24 @@ class Connect4:
                     else:
                         return givenInput # Valid input exits the function immediately
                 else:
-                    print(f"You dropped your disk outside of the gameboard, silly guy! Try again")
+                    print(f"You dropped your disk outside of the gameboard, silly goose! Try again")
                     
             except ValueError:
                 print("You seem a bit confused, try again, choosing a number between 0 and 6.")
+
+    def checkDirection(self, diskRow, diskColumn, playerDisk, rowMod, columnMod):
+        checkRow = diskRow+rowMod
+        checkColumn = diskColumn+columnMod
+
+        adjacentScore = 0
+        while 0 <= checkColumn <= MAX_COLUMN and 0 <= checkRow <= MAX_ROW:
+            if self.board[checkRow][checkColumn] == playerDisk:
+                adjacentScore += 1
+                checkRow += rowMod
+                checkColumn += columnMod
+            else:
+                return adjacentScore            
+        return adjacentScore
 
     def checkWin(self, diskRow, diskColumn, playerDisk):
         # check all directions for a win
@@ -48,60 +65,14 @@ class Connect4:
         counterSlash = 0
         counterBackslash = 0
 
-        c = 1
-        while 0<=diskColumn - c: #check left side
-            if self.board[diskRow][diskColumn-c] == playerDisk:
-                counterRow += 1
-                c+=1
-            else:
-                break
-        c=1
-        while diskColumn + c <=6: #check right side
-            if self.board[diskRow][diskColumn+c] == playerDisk:
-                counterRow += 1
-                c+=1
-            else:
-                break
+        counterRow += self.checkDirection(diskRow, diskColumn, playerDisk, 0, -1) # left
+        counterRow += self.checkDirection(diskRow, diskColumn, playerDisk, 0, +1) # right
+        counterDown += self.checkDirection(diskRow, diskColumn, playerDisk, +1, 0) # down
+        counterSlash += self.checkDirection(diskRow, diskColumn, playerDisk, -1, +1) # NE
+        counterSlash += self.checkDirection(diskRow, diskColumn, playerDisk, +1, -1) # SW
+        counterBackslash += self.checkDirection(diskRow, diskColumn, playerDisk, -1, -1) # NW
+        counterBackslash += self.checkDirection(diskRow, diskColumn, playerDisk, +1, +1) # SE
         
-        c=1
-        while diskRow + c <=5: #checking down
-            if self.board[diskRow+c][diskColumn] == playerDisk:
-                counterDown +=1
-                c+=1
-            else:
-                break
-
-        c=1
-        while 0<=diskRow-c and diskColumn+c <=6: #checking NE
-            if self.board[diskRow-c][diskColumn+c] == playerDisk:
-                counterSlash +=1
-                c+=1
-            else:
-                break
-
-        c=1
-        while diskRow+c<=5 and 0<=diskColumn-c: #checking SW
-            if self.board[diskRow+c][diskColumn-c]== playerDisk:
-                counterSlash +=1
-                c+=1
-            else:
-                break
-        
-        c=1
-        while 0<=diskRow-c and 0<=diskColumn-c: #checking NW
-            if self.board[diskRow-c][diskColumn-c]== playerDisk:
-                counterBackslash +=1
-                c+=1
-            else:
-                break
-
-        c=1
-        while diskRow+c<=5 and diskColumn+c<=6: #checking SE
-            if self.board[diskRow+c][diskColumn+c]== playerDisk:
-                counterBackslash +=1
-                c+=1
-            else:
-                break
         return (counterRow >= 3 or counterDown >= 3 or counterSlash >= 3 or counterBackslash >= 3)
     
     def play(self):
@@ -113,16 +84,15 @@ class Connect4:
             playerDisk = self.disks[playerNumber-1]
 
             diskColumn = self.getPlayerInput(playerNumber)
+            # updates & prints the game board, updates the nextRowForColumn dict, and returns the diskRow
             diskRow = self.insertChip(diskColumn, playerDisk)
 
-            self.printBoard
-
-            if self.checkWin(diskRow, diskColumn, playerDisk):
+            if self.checkWin(diskRow, diskColumn, playerDisk): # self.checkWin returns a boolean
                 print(f"Player {playerNumber} Wins!")
                 self.gameActive = False
                 break
 
-            if all(val < 0 for val in self.nextRowForColumn.values()):
+            if all(val < 0 for val in self.nextRowForColumn.values()): # when a column is full the value drops to -1; therefore if all the values are -1, the board is full and since no win condition has been detected, the game is a draw
                 print("It's a draw!")
                 self.gameActive = False
                 break
