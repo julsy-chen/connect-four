@@ -131,7 +131,7 @@ class Connect4:
         return score
 
     def evaluateBoard(self, board): # function should evaluate the current board to give a score for the bot to use in decision
-        # Must return a tuple (None, score) to match the expected return type
+        # Return a tuple (None, score) to match the expected return type
         score = 0
         piece = self.botDisk
 
@@ -183,7 +183,7 @@ class Connect4:
             else: # Depth is zero
                 return self.evaluateBoard(board)
                 
-        if maximizingPlayer:
+        if maximizingPlayer: # maximizing player is the bot
             value = -float('inf')
             best_col = random.choice(validColumns) # Fallback
             
